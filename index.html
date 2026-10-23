@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundSight — see the sound at the edge of the game</title>
+  <meta name="description" content="SoundSight is a Windows overlay for deaf and hard of hearing players. It draws the game's stereo sound down the edges of the screen. Chromesthesia is the setting for play.">
+  <style>
+    :root {
+      --bg: #0b0d11;
+      --bg-raise: #14181f;
+      --line: #2a3140;
+      --text: #f3f5f8;
+      --muted: #b4bdc9;
+      --faint: #8b95a3;
+      --amber: #e39a3c;
+      --amber-deep: #8d3e12;
+      --teal: #3ecfb8;
+      --violet: #d5d0ff;
+      --key: #1c222c;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 4.5rem;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1200px 500px at 50% -10%, rgba(62, 207, 184, 0.08), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    a { color: var(--teal); }
+    a:hover { color: var(--violet); }
+
+    .wrap {
+      width: min(1080px, calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--bg);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 4rem;
+    }
+
+    .brand {
+      color: var(--text);
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem 1.1rem;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover { color: var(--text); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 2.5rem;
+      align-items: center;
+      padding: 3.2rem 0 2.4rem;
+    }
+
+    h1 {
+      margin: 0 0 0.8rem;
+      font-size: clamp(2.1rem, 4vw, 3.3rem);
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+    }
+
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .screen {
+      display: grid;
+      grid-template-columns: 1fr minmax(132px, 168px) 1fr;
+      align-items: stretch;
+      gap: 10px;
+      height: 380px;
+      margin: 0;
+      padding: 22px 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%),
+        #10141b;
+      box-shadow: var(--shadow);
+    }
+
+    .screen p {
+      align-self: center;
+      margin: 0;
+      text-align: center;
+      color: var(--faint);
+      font-size: 0.92rem;
+    }
+
+    .edge {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .edge.left { align-items: flex-start; }
+    .edge.right { align-items: flex-end; }
+
+    .bar-bit {
+      display: block;
+      border-radius: 999px;
+    }
+
+    .edge.left .air { width: 36%; height: 8px; background: #f4f1ff; box-shadow: 0 0 12px rgba(213, 208, 255, 0.9); }
+    .edge.left .mid { width: 68%; height: 14px; background: #3ecfb8; }
+    .edge.left .body { width: 96%; height: 22px; background: linear-gradient(90deg, #f0b15a, #9a4514); }
+    .edge.right .air { width: 18%; height: 8px; background: #f4f1ff; opacity: 0.7; }
+    .edge.right .mid { width: 30%; height: 14px; background: #3ecfb8; opacity: 0.75; }
+    .edge.right .body { width: 48%; height: 22px; background: linear-gradient(90deg, #6d3414, #c47a32); }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1.2rem;
+      margin: 0.75rem 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .legend li { display: flex; align-items: center; gap: 0.45rem; }
+
+    .swatch {
+      width: 1.7rem;
+      height: 0.55rem;
+      border-radius: 999px;
+      background: var(--amber);
+    }
+
+    .swatch.mid { width: 1.15rem; height: 0.4rem; background: var(--teal); }
+    .swatch.air { width: 0.7rem; height: 0.28rem; background: var(--violet); box-shadow: 0 0 8px rgba(213, 208, 255, 0.8); }
+
+    section { padding: 1.2rem 0 2.2rem; }
+
+    h2 {
+      margin: 0 0 0.8rem;
+      font-size: 1.7rem;
+      letter-spacing: -0.02em;
+      scroll-margin-top: 4.5rem;
+    }
+
+    h3 {
+      margin: 1.4rem 0 0.4rem;
+      font-size: 1.15rem;
+      scroll-margin-top: 4.5rem;
+    }
+
+    p { margin: 0 0 0.9rem; }
+
+    .prose { max-width: 68ch; }
+
+    .zones {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      margin: 1.2rem 0 0.4rem;
+    }
+
+    .zone {
+      padding: 1rem 1rem 0.9rem;
+      background: var(--bg-raise);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      border-top: 3px solid var(--amber);
+    }
+
+    .zone:nth-child(2) { border-top-color: var(--teal); }
+    .zone:nth-child(3) { border-top-color: var(--violet); }
+
+    .zone strong { display: block; margin-bottom: 0.25rem; }
+    .zone p { margin: 0; color: var(--muted); font-size: 0.98rem; }
+
+    ol.steps, ul.plain { margin: 0.4rem 0 1rem; padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    li::marker { color: var(--teal); }
+
+    .controls {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.6rem 0 1rem;
+    }
+
+    .controls th, .controls td {
+      text-align: left;
+      vertical-align: top;
+      padding: 0.7rem 0.8rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .controls th {
+      width: 9.5rem;
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .controls td { color: var(--muted); }
+
+    kbd {
+      display: inline-block;
+      padding: 0.05rem 0.4rem;
+      border: 1px solid #3a4354;
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: var(--key);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.92em;
+    }
+
+    .note {
+      margin-top: 0.6rem;
+      padding: 0.9rem 1rem;
+      border-left: 3px solid var(--amber);
+      background: rgba(227, 154, 60, 0.08);
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.4rem 0 2rem;
+      color: var(--faint);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero, .zones { grid-template-columns: 1fr; }
+      .screen { height: 300px; grid-template-columns: 1fr minmax(108px, 140px) 1fr; }
+      .bar { align-items: flex-start; flex-direction: column; padding: 0.8rem 0; }
+    }
+
+    @media (max-width: 640px) {
+      .controls th,
+      .controls td {
+        display: block;
+        width: auto;
+        padding-right: 0;
+        padding-left: 0;
+      }
+
+      .controls th {
+        padding-bottom: 0.15rem;
+        border-bottom: 0;
+      }
+
+      .controls td { padding-top: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <a class="brand" href="#top">SoundSight</a>
+      <nav>
+        <a href="#play">Playing</a>
+        <a href="#chromesthesia">Chromesthesia</a>
+        <a href="#themes">Themes</a>
+        <a href="#use">How to use</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <div>
+        <h1>See the sound without looking away from the game.</h1>
+        <p class="lede">SoundSight is a Windows overlay for deaf and hard of hearing players. It listens to the same stereo mix as your speakers or headphones and draws it down the left and right edges of the screen.</p>
+      </div>
+      <div>
+        <figure class="screen" aria-label="A sketch of SoundSight on a game screen. Thick amber bars sit low, teal bars sit in the middle, and thin bright bars sit at the top. The left side is louder than the right.">
+          <div class="edge left" aria-hidden="true">
+            <span class="bar-bit air"></span>
+            <span class="bar-bit mid"></span>
+            <span class="bar-bit body"></span>
+          </div>
+          <p>The game stays in the middle. Sound stays at the edges.</p>
+          <div class="edge right" aria-hidden="true">
+            <span class="bar-bit air"></span>
+            <span class="bar-bit mid"></span>
+            <span class="bar-bit body"></span>
+          </div>
+        </figure>
+        <ul class="legend">
+          <li><span class="swatch"></span> Low, thick</li>
+          <li><span class="swatch mid"></span> Middle</li>
+          <li><span class="swatch air"></span> High, thin</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <section id="play">
+        <div class="prose">
+          <h2>Made for play, not for a second look</h2>
+          <p>A lot of sound cues in games are easy to miss if you cannot hear them clearly: a step to your left, a reload, a voice, a shot, an engine. Captions help with speech. They do not show you where a noise came from, or whether it was a low boom or a high crack, and they sit where you are trying to aim.</p>
+          <p>SoundSight leaves the center of the screen alone. The bars grow inward from the edges, in the part of your vision that notices movement and brightness while you watch the game. Clicks pass through the overlay, so the mouse still belongs to the game.</p>
+          <p>Three things are readable at a glance:</p>
+          <ul class="plain">
+            <li><strong>Side.</strong> The left edge is the left channel. The right edge is the right channel. A sound on one side lights that edge.</li>
+            <li><strong>Loudness.</strong> A louder sound reaches farther toward the center. A short tick stays at the peak for about half a second, so a single step or shot does not vanish between frames.</li>
+            <li><strong>Kind of sound.</strong> With Chromesthesia on, low sounds are thick and deep, middle sounds are a clear teal, and high sounds are thin and bright.</li>
+          </ul>
+          <p>You do not install anything into the game. If Windows is playing it, SoundSight can draw it. That includes the game, a call, or a video.</p>
+        </div>
+      </section>
+
+      <section id="chromesthesia">
+        <div class="prose">
+          <h2>Chromesthesia</h2>
+          <p>Chromesthesia is a form of synesthesia. For people who have it, sound brings color, brightness, and shape along with it. A note is not only heard. It is also seen, without them choosing to picture it.</p>
+          <p>There is no single color chart that every person shares. Hue is personal. What shows up across many accounts, and in the way most people already match sound to pictures, is a smaller set of habits:</p>
+          <ul class="plain">
+            <li>Low sounds feel large, heavy, and dark.</li>
+            <li>High sounds feel small, sharp, and bright, sometimes close to white.</li>
+            <li>Louder sounds feel more saturated and more luminous.</li>
+            <li>The picture hits at once. It fades after the sound, and low sounds linger longer than high ones.</li>
+          </ul>
+          <p>SoundSight uses those habits as its playing theme. The corner of your eye catches size, brightness, and motion quickly. A row of similar bars in different rainbow colors is harder to tell apart out there. Chromesthesia puts the difference into the shape of the bar, then uses color as a second cue you can learn.</p>
+        </div>
+        <div class="zones">
+          <article class="zone">
+            <strong>Low, amber, thick</strong>
+            <p>Along the bottom. Explosions, engines, impacts, bass. The row is about twice as tall as a high row, and the color stays deep even when the hit is loud.</p>
+          </article>
+          <article class="zone">
+            <strong>Middle, teal</strong>
+            <p>Voices, footsteps, and the body of a gunshot live around here. Teal sits between the amber below and the pale bars above, so this band reads as its own thing.</p>
+          </article>
+          <article class="zone">
+            <strong>High, thin, bright</strong>
+            <p>Along the top. Rustle, a ricochet, the edge of speech. Loud highs flare toward white and pick up a soft glow.</p>
+          </article>
+        </div>
+        <div class="prose">
+          <p>Every band appears in a fraction of a second. After the sound stops, a low band fades over roughly half a second and a high band fades faster. The Blending slider stretches or shortens that fade. The length of the bar is still loudness. Color and thickness tell you the pitch.</p>
+        </div>
+      </section>
+
+      <section id="themes">
+        <div class="prose">
+          <h2>Chromesthesia for games. The other themes for music.</h2>
+          <p>Chromesthesia is the setting to use while you play. It is the one that changes thickness, brightness, and fade with the pitch, so a boom and a click do not look like the same bar in a different color.</p>
+          <p>The other three themes are color equalizers. Each frequency gets a color, and the bars stay the same shape. They are a good way to watch a song. They are a weaker way to read a game, because the cue you can catch at the edge of your eye is mostly “a bar got longer.”</p>
+          <ul class="plain">
+            <li><strong>Natural light</strong> paints the spectrum in a rainbow, low to high.</li>
+            <li><strong>Stereo</strong> paints the whole left edge cyan and the whole right edge magenta. Side is obvious. Pitch is not.</li>
+            <li><strong>Heat</strong> runs from dark red at the bottom to white at the top.</li>
+          </ul>
+          <p>Leave the theme on Chromesthesia for a match. Switch when you want the overlay to behave like a music visualizer.</p>
+        </div>
+      </section>
+
+      <section id="use">
+        <div class="prose">
+          <h2>How to use it</h2>
+          <ol class="steps">
+            <li>Start SoundSight, then start the game. The overlay covers the main monitor. It has no taskbar button. The icon sits in the system tray, by the clock.</li>
+            <li>Play as usual. Set the game’s audio device to the same playback device Windows is using. SoundSight draws that device.</li>
+            <li>Press <kbd>Left Shift</kbd> and <kbd>Right Shift</kbd> together to open the menu. They need to go down within about a quarter of a second of each other. <kbd>Esc</kbd> or <strong>Close Menu</strong> hides it. You can also double-click the tray icon, or right-click it and choose <strong>Show menu</strong>.</li>
+            <li>Keep <strong>Click through</strong> on while you play. The menu turns it off for itself, so you can move the sliders. Close the menu before you need the mouse in the game.</li>
+            <li>Set the theme to <strong>Chromesthesia</strong>.</li>
+            <li>To quit, choose <strong>Exit</strong> in the menu or on the tray icon.</li>
+          </ol>
+
+          <h3>The menu</h3>
+          <table class="controls">
+            <tbody>
+              <tr>
+                <th>Theme</th>
+                <td>Chromesthesia for games. Natural light, Stereo, and Heat for watching music.</td>
+              </tr>
+              <tr>
+                <th>Sensitivity</th>
+                <td>How easily bars grow. Raise it when the game is quiet and the edges barely move. Lower it when every bar is stuck at full length. The starting value is 4.</td>
+              </tr>
+              <tr>
+                <th>Blending</th>
+                <td>How long a sound stays on screen after it ends. Lower is snappier. Higher lets the fade hang on. Low sounds still fade slower than high ones. The starting value is the middle of the slider.</td>
+              </tr>
+              <tr>
+                <th>Width</th>
+                <td>How far a loud bar may reach toward the center. 100 is the longest. Drop it if the bars cover part of the view you need.</td>
+              </tr>
+              <tr>
+                <th>Dimness</th>
+                <td>Fades the overlay. Leave it low enough that a new bar still catches your eye. Raise it on a bright scene.</td>
+              </tr>
+              <tr>
+                <th>Click through</th>
+                <td>On means the game receives your clicks. Off means the overlay blocks them. Leave it on.</td>
+              </tr>
+              <tr>
+                <th>Show text</th>
+                <td>Draws “Left”, “Right”, and the frequency names. Useful while you are learning the layout. Turn it off when the words get in the way.</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>The status line should say that SoundSight is listening, along with the sample rate. If the edges stay dark during a loud scene, open the menu and read that line. The usual cause is the game playing through a different device than the one Windows has set as the default.</p>
+
+          <h3>Reading a match</h3>
+          <ul class="plain">
+            <li>One edge moving means that side.</li>
+            <li>Both edges moving together usually means the sound is in the center: dialogue, your own footsteps, a lot of music.</li>
+            <li>A thick amber push is a low hit. A teal spike in the middle is often a voice, a step, or the body of a weapon. A thin bright flash at the top is a high transient.</li>
+            <li>Music lights many rows at once. The cues that matter in a fight are the ones that appear suddenly.</li>
+          </ul>
+          <div class="note">
+            <p>SoundSight shows the stereo mix the game already created. It does not rebuild a map of the world. Front and back, or above and below, appear only when the game has already put them into loudness or tone. A second monitor stays blank. The overlay follows the primary display.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">SoundSight. An edge overlay for deaf and hard of hearing players. Chromesthesia is the setting for the game.</div>
+  </footer>
+</body>
+</html>
