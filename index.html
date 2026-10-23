@@ -259,6 +259,24 @@
       color: var(--muted);
     }
 
+    .menu-shot {
+      margin: 1.2rem 0 1.4rem;
+    }
+
+    .menu-shot img {
+      display: block;
+      width: min(100%, 364px);
+      height: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .menu-shot figcaption {
+      margin-top: 0.45rem;
+      color: var(--faint);
+      font-size: 0.92rem;
+    }
+
     footer {
       border-top: 1px solid var(--line);
       padding: 1.4rem 0 2rem;
@@ -408,6 +426,11 @@
             <li>Set the theme to <strong>Chromesthesia</strong>.</li>
             <li>To quit, choose <strong>Exit</strong> in the menu or on the tray icon.</li>
           </ol>
+
+          <figure class="menu-shot">
+            <img src="images/SoundSightMenu.png" width="364" height="525" alt="The SoundSight menu. Theme is Chromesthesia. Sliders are Sensitivity, Blending, Width, and Dimness. Click through is checked. Close Menu is at the lower left and Exit is at the lower right.">
+            <figcaption>The menu that opens when Left Shift and Right Shift are pressed together.</figcaption>
+          </figure>
 
           <h3>The menu</h3>
           <table class="controls">
